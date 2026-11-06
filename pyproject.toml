@@ -1,0 +1,55 @@
+[project]
+name = "focus-companion-game"
+version = "0.1.0"
+description = "Backend for a deterministic focus companion game."
+readme = "README.md"
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "alembic",
+    "asyncpg",
+    "deepagents",
+    "fastapi",
+    "httpx",
+    "pydantic",
+    "pydantic-settings",
+    "python-multipart",
+    "pyyaml",
+    "sqlalchemy",
+    "tzdata",
+    "uvicorn>=0.52.0",
+]
+
+[dependency-groups]
+dev = [
+    "aiosqlite",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+]
+
+[[tool.uv.index]]
+name = "tsinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/focus_game"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "DTZ"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["DTZ001"]
+"src/focus_game/api/routes.py" = ["B008"]

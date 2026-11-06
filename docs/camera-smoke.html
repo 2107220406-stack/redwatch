@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>摄像头联调</title>
+  <style>
+    body { max-width: 720px; margin: 32px auto; font: 16px system-ui, sans-serif; color: #17212b; }
+    video { width: 100%; background: #111; aspect-ratio: 4 / 3; }
+    input, button { padding: 8px; margin: 6px 0; } button { cursor: pointer; }
+    #result { white-space: pre-wrap; background: #f4f6f8; padding: 12px; min-height: 48px; }
+  </style>
+</head>
+<body>
+  <h1>摄像头联调</h1>
+  <label>玩家 ID <input id="playerId" value="camera-player"></label>
+  <label>场次目标秒数 <input id="targetSeconds" type="number" min="60" value="1500"></label>
+  <div><button id="startCamera">开启摄像头</button><button id="startSession" disabled>开始场次</button><button id="sendFrame" disabled>上传当前帧</button><button id="complete" disabled>完成场次</button></div>
+  <video id="preview" autoplay playsinline muted></video>
+  <h2>服务端结果</h2><pre id="result">等待操作</pre>
+  <script>
+    const preview = document.querySelector('#preview');
+    const result = document.querySelector('#result');
+    let sessionId = null;
+    const playerId = () => document.querySelector('#playerId').value.trim();
+    const key = (operation) => `${operation}-${crypto.randomUUID()}`;
+    const headers = (operation, json = false) => ({ 'X-Player-Id': playerId(), 'Idempotency-Key': key(operation), ...(json ? { 'Content-Type': 'application/json' } : {}) });
+    const show = (data) => { result.textContent = JSON.stringify(data, null, 2); };
+    async function request(url, options) { const response = await fetch(url, options); const data = await response.json(); show(data); if (!response.ok) throw new Error(data.detail || response.statusText); return data; }
+    document.querySelector('#startCamera').onclick = async () => {
+      try { preview.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false }); document.querySelector('#startSession').disabled = false; show({ camera: 'ready' }); } catch (error) { show({ error: error.message }); }
+    };
+    document.querySelector('#startSession').onclick = async () => {
+      try { const data = await request('/sessions', { method: 'POST', headers: headers('start', true), body: JSON.stringify({ target_seconds: Number(document.querySelector('#targetSeconds').value) }) }); sessionId = data.state.active_session_id; document.querySelector('#sendFrame').disabled = false; document.querySelector('#complete').disabled = false; } catch (error) { console.error(error); }
+    };
+    document.querySelector('#sendFrame').onclick = async () => {
+      if (!sessionId) return;
+      const canvas = document.createElement('canvas'); canvas.width = preview.videoWidth; canvas.height = preview.videoHeight; canvas.getContext('2d').drawImage(preview, 0, 0);
+      canvas.toBlob(async (blob) => { try { const form = new FormData(); form.append('captured_at', new Date().toISOString()); form.append('image', blob, 'camera.jpg'); await request(`/sessions/${sessionId}/frames`, { method: 'POST', headers: headers('frame'), body: form }); } catch (error) { console.error(error); } }, 'image/jpeg', 0.85);
+    };
+    document.querySelector('#complete').onclick = async () => { if (!sessionId) return; try { await request(`/sessions/${sessionId}/complete`, { method: 'POST', headers: headers('complete') }); sessionId = null; document.querySelector('#sendFrame').disabled = true; document.querySelector('#complete').disabled = true; } catch (error) { console.error(error); } };
+  </script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+version: "1"
+world_name: "晨曦观测站"
+roles:
+  supervisor: "值班领航员"
+  player: "观测员"
+stages:
+  working: "观测窗口"
+  resting: "补给窗口"
+messages:
+  default: "状态已更新。"
+  SessionStarted: "观测窗口已开启，请保持稳定节奏。"
+  PatrolObservationRecorded: "观测记录已收到。"
+  StarDeducted: "观测信号出现偏离，请立即回到当前任务。"
+  SessionExpelled: "本轮观测结束，请整理状态后再申请下一轮。"
+  SessionExited: "已结束当前观测窗口。"
+  SessionCompleted: "观测窗口完成，记录已归档。"
+  PardonGranted: "特赦已生效，可以重新进入观测窗口。"
+  PardonPurchased: "特赦已生效，已扣除军功币。"
