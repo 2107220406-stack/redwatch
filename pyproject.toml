@@ -5,6 +5,7 @@ description = "Backend for a deterministic focus companion game."
 readme = "README.md"
 requires-python = ">=3.11,<4.0"
 dependencies = [
+    "aiomysql>=0.3.2",
     "alembic",
     "asyncpg",
     "deepagents",

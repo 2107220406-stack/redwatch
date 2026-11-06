@@ -22,8 +22,8 @@ def upgrade() -> None:
     op.execute(
         sa.text(
             "INSERT INTO idempotency_records_new "
-            "(player_id, key, request_hash, decision_id, response) "
-            "SELECT 'legacy', key, request_hash, decision_id, response "
+            "(player_id, `key`, request_hash, decision_id, response) "
+            "SELECT 'legacy', `key`, request_hash, decision_id, response "
             "FROM idempotency_records"
         )
     )
